@@ -50,6 +50,6 @@ class User extends Authenticatable
     }
 
     function attendences () {
-        return $this->hasOne(Attendence::class);
+        return $this->hasMany(Attendence::class);
     }
 }

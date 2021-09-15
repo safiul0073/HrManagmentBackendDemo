@@ -27,13 +27,16 @@ class AttendenceController extends Controller
         $arr = [];
         $present = 0;
         $holyday = 0;
+        $alredyAttend = null;
         foreach ($employees as $employee) {
+            
             $present = Attendence::where("user_id", $employee->id)->whereDate('created_at', Carbon::today())->count();
             $allAttendees = Attendence::where('present', 1)->where('user_id', $employee->id)->count();
             $allWeekends = Attendence::where('present', 1)->where('user_id', $employee->id)->where('weekend', 1)->count();
             $allAbsen = Attendence::where('present', 0)->where('holyday', 0)->where('weekend', 0)->where('user_id', $employee->id)->count();
             $holyday = Attendence::where('user_id', $employee->id)->where('holyday', 1)->count();
             $att_id = Attendence::where('user_id', $employee->id)->latest()->first();
+            $att_id ? $alredyAttend = $att_id : $att_id = $alredyAttend;
             $arr[] = [
                 "id" => $att_id ? $att_id->id : null,
                 "user_id" => $employee->id,
@@ -46,17 +49,15 @@ class AttendenceController extends Controller
                 "holyday" => $holyday
             ];
         }
-        ;
+        // dd($employees->attendences());
         return response()->json(['employees'=> $arr], 200);
     }
 
     public function update (Request $request) {
 
-            $att = Attendence::find($request->id);
-            $att->present = $request->present;
-            $att->holyday = $request->holyday;
-            $att->weekend = $request->weekend;
-            $att->save();
+            $att = Attendence::updateOrCreate(['id' => $request->id], 
+                ["user_id" => $request->user_id,"present" => $request->present, 'holyday' => $request->holyday, 'weekend' => $request->weekend]
+            );
            
         return response()->json(['message' => "success"]);
     }
